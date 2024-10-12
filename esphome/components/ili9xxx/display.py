@@ -90,7 +90,7 @@ CONF_COLOR_PALETTE_IMAGES = "color_palette_images"
 CONF_INVERT_DISPLAY = "invert_display"
 CONF_PIXEL_MODE = "pixel_mode"
 CONF_INIT_SEQUENCE = "init_sequence"
-
+CONF_USES_SHARED_RESET_PIN = "uses_shared_reset_pin"
 
 def cmd(c, *args):
     """
@@ -188,6 +188,7 @@ CONFIG_SCHEMA = cv.All(
                 }
             ),
             cv.Optional(CONF_INIT_SEQUENCE): cv.ensure_list(map_sequence),
+            cv.Optional(CONF_USES_SHARED_RESET_PIN): cv.boolean,
         }
     )
     .extend(cv.polling_component_schema("1s"))
@@ -288,3 +289,6 @@ async def to_code(config):
         cg.add(var.set_palette(prog_arr))
 
     cg.add(var.invert_colors(config[CONF_INVERT_COLORS]))
+
+    if CONF_USES_SHARED_RESET_PIN in config:
+        cg.add(var.set_uses_shared_reset_pin(config[CONF_USES_SHARED_RESET_PIN]))

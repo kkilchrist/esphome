@@ -83,6 +83,8 @@ class ILI9XXXDisplay : public display::DisplayBuffer,
   void set_mirror_y(bool mirror_y) { this->mirror_y_ = mirror_y; }
   void set_pixel_mode(PixelMode mode) { this->pixel_mode_ = mode; }
 
+  void set_uses_shared_reset_pin(bool uses_shared_reset_pin);
+
   void update() override;
 
   void fill(Color color) override;
@@ -103,6 +105,11 @@ class ILI9XXXDisplay : public display::DisplayBuffer,
     }
     return true;
   }
+    // Declare the static global reset flag
+  static bool global_shared_reset_has_been_performed;
+
+  // Add the member variable for shared reset pin usage
+  bool uses_shared_reset_pin_{false};
 
   void draw_absolute_pixel_internal(int x, int y, Color color) override;
   void setup_pins_();
