@@ -27,6 +27,8 @@ enum ImageFormat {
   JPEG,
   /** PNG format. */
   PNG,
+  /** WEBP format */
+  WEBP,
 };
 
 /**

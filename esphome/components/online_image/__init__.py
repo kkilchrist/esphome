@@ -35,9 +35,15 @@ online_image_ns = cg.esphome_ns.namespace("online_image")
 
 ImageFormat = online_image_ns.enum("ImageFormat")
 
+# Add WebP format support
 FORMAT_PNG = "PNG"
+FORMAT_WEBP = "WEBP"
 
-IMAGE_FORMAT = {FORMAT_PNG: ImageFormat.PNG}  # Add new supported formats here
+# Add new supported formats here
+IMAGE_FORMAT = {
+    FORMAT_PNG: ImageFormat.PNG,
+    FORMAT_WEBP: ImageFormat.WEBP,
+}
 
 OnlineImage = online_image_ns.class_("OnlineImage", cg.PollingComponent, Image_)
 
@@ -132,10 +138,12 @@ async def online_image_action_to_code(config, action_id, template_arg, args):
 
 async def to_code(config):
     format = config[CONF_FORMAT]
-    if format in [FORMAT_PNG]:
+    if format == FORMAT_PNG:
         cg.add_define("USE_ONLINE_IMAGE_PNG_SUPPORT")
         cg.add_library("pngle", "1.0.2")
-
+    elif format == FORMAT_WEBP:
+        cg.add_define("USE_ONLINE_IMAGE_WEBP_SUPPORT")
+        cg.add_library("libwebp", "1.4.0", "https://github.com/kkilchrist/libwebp.git")
     url = config[CONF_URL]
     width, height = config.get(CONF_RESIZE, (0, 0))
     transparent = config[CONF_USE_TRANSPARENCY]
