@@ -66,13 +66,13 @@ int HttpContainerCurl::read(uint8_t *buf, size_t max_len) {
   memcpy(buf, buffer_ + buffer_pos_, bytes_to_read);
   buffer_pos_ += bytes_to_read;
   bytes_read_ += bytes_to_read;
-  ESP_LOGI("HttpContainerCurl", "Read %d bytes from buffer", static_cast<int>(bytes_to_read));
+  ESP_LOGD("HttpContainerCurl", "Read %d bytes from buffer", static_cast<int>(bytes_to_read));
   return static_cast<int>(bytes_to_read);
 }
 
 // End method implementation
 void HttpContainerCurl::end() {
-  ESP_LOGI("HttpContainerCurl", "Ending HTTP request");
+  ESP_LOGD("HttpContainerCurl", "Ending HTTP request");
   ended_ = true;
 }
 
@@ -89,7 +89,7 @@ size_t HttpContainerCurl::WriteCallback(char *ptr, size_t size, size_t nmemb, vo
   container->buffer_pos_ = 0;
   container->buffer_len_ = bytes_to_copy;
 
-  ESP_LOGI("HttpContainerCurl", "Stored %zu bytes in buffer", bytes_to_copy);
+  ESP_LOGD("HttpContainerCurl", "Stored %zu bytes in buffer", bytes_to_copy);
 
   return total_size;
 }
@@ -103,7 +103,7 @@ size_t HttpContainerCurl::HeaderCallback(char *buffer, size_t size, size_t nitem
 // Start method implementation
 std::shared_ptr<HttpContainer> HttpRequestCurl::start(std::string url, std::string method, std::string body,
                                                       std::list<Header> headers) {
-  ESP_LOGI("HttpRequestCurl", "Starting HTTP request to URL: %s", url.c_str());
+  ESP_LOGD("HttpRequestCurl", "Starting HTTP request to URL: %s", url.c_str());
 
   CURL *curl = curl_easy_init();
   if (!curl) {
@@ -117,24 +117,24 @@ std::shared_ptr<HttpContainer> HttpRequestCurl::start(std::string url, std::stri
 
   // Set URL
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  ESP_LOGI("HttpRequestCurl", "Set URL: %s", url.c_str());
+  ESP_LOGD("HttpRequestCurl", "Set URL: %s", url.c_str());
 
   // Set HTTP method and body
   if (method == "POST") {
-    ESP_LOGI("HttpRequestCurl", "Using POST method with body");
+    ESP_LOGD("HttpRequestCurl", "Using POST method with body");
     curl_easy_setopt(curl, CURLOPT_POST, 1L);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
   } else if (method == "PUT") {
-    ESP_LOGI("HttpRequestCurl", "Using PUT method with body");
+    ESP_LOGD("HttpRequestCurl", "Using PUT method with body");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
   } else if (method == "DELETE") {
-    ESP_LOGI("HttpRequestCurl", "Using DELETE method");
+    ESP_LOGD("HttpRequestCurl", "Using DELETE method");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
   } else {
-    ESP_LOGI("HttpRequestCurl", "Using GET method");
+    ESP_LOGD("HttpRequestCurl", "Using GET method");
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
   }
 
@@ -143,7 +143,7 @@ std::shared_ptr<HttpContainer> HttpRequestCurl::start(std::string url, std::stri
   for (const auto &header : headers) {
     std::string header_str = std::string(header.name) + ": " + std::string(header.value);
     curl_headers = curl_slist_append(curl_headers, header_str.c_str());
-    ESP_LOGI("HttpRequestCurl", "Added header: %s", header_str.c_str());
+    ESP_LOGD("HttpRequestCurl", "Added header: %s", header_str.c_str());
   }
   if (curl_headers) {
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_headers);
@@ -160,19 +160,19 @@ std::shared_ptr<HttpContainer> HttpRequestCurl::start(std::string url, std::stri
 
   // Set timeout (in seconds; libcurl doesn't support milliseconds directly)
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, static_cast<long>(this->timeout_) / 1000);
-  ESP_LOGI("HttpRequestCurl", "Set timeout to %d seconds", static_cast<long>(this->timeout_) / 1000);
+  ESP_LOGD("HttpRequestCurl", "Set timeout to %d seconds", static_cast<long>(this->timeout_) / 1000);
 
   // Follow redirects
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, this->follow_redirects_ ? 1L : 0L);
   if (this->follow_redirects_) {
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, static_cast<long>(this->redirect_limit_));
-    ESP_LOGI("HttpRequestCurl", "Following redirects, max redirects: %d", this->redirect_limit_);
+    ESP_LOGD("HttpRequestCurl", "Following redirects, max redirects: %d", this->redirect_limit_);
   }
 
   // Set user agent if provided
   if (this->useragent_) {
     curl_easy_setopt(curl, CURLOPT_USERAGENT, this->useragent_);
-    ESP_LOGI("HttpRequestCurl", "Set user agent: %s", this->useragent_);
+    ESP_LOGD("HttpRequestCurl", "Set user agent: %s", this->useragent_);
   }
 
   // Perform the request
@@ -190,18 +190,18 @@ std::shared_ptr<HttpContainer> HttpRequestCurl::start(std::string url, std::stri
   long response_code = 0;
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
   container->set_status_code(response_code);
-  ESP_LOGI("HttpRequestCurl", "Received response code: %ld", response_code);
+  ESP_LOGD("HttpRequestCurl", "Received response code: %ld", response_code);
 
   double total_time = 0.0;
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
   container->set_duration_ms(static_cast<uint32_t>(total_time * 1000));
-  ESP_LOGI("HttpRequestCurl", "Request took %.2f seconds", total_time);
+  ESP_LOGD("HttpRequestCurl", "Request took %.2f seconds", total_time);
 
   // Optionally retrieve content length
   double cl;
   if (curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &cl) == CURLE_OK) {
     container->set_content_length(static_cast<size_t>(cl));
-    ESP_LOGI("HttpRequestCurl", "Content length: %zu", static_cast<size_t>(cl));
+    ESP_LOGD("HttpRequestCurl", "Content length: %zu", static_cast<size_t>(cl));
   }
 
   // Cleanup
