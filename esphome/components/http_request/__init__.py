@@ -175,9 +175,9 @@ async def to_code(config):
     if CORE.is_rp2040 and CORE.using_arduino:
         cg.add_library("HTTPClient", None)
     # Set up networking and HTTP support for host platform
-    if CORE.is_host:
+    # if CORE.is_host:
         # Ensure libcurl is included for HTTP requests
-        cg.add_library("libcurl-esp32", None) # Is libcurl sufficient to replace HTTPClient?
+        # cg.add_library("libcurl-esp32", None) # Is libcurl sufficient to replace HTTPClient?
     
     await cg.register_component(var, config)
 

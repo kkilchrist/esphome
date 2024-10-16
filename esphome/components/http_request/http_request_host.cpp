@@ -13,8 +13,6 @@
 namespace esphome {
 namespace http_request {
 
-static const char *TAG = "http_request_host";
-
 // Utility function to convert milliseconds to seconds (for libcurl timeout)
 static double ms_to_seconds(int ms) { return static_cast<double>(ms) / 1000.0; }
 

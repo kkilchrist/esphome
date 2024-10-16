@@ -35,9 +35,6 @@ class HttpContainer : public Parented<HttpRequestComponent> {
   virtual int read(uint8_t *buf, size_t max_len) = 0;
   virtual void end() = 0;
   
-  // Add a virtual method to set the response
-  virtual void set_response(const std::string &response) = 0;
-
   void set_secure(bool secure) { this->secure_ = secure; }
 
   size_t get_bytes_read() const { return this->bytes_read_; }
