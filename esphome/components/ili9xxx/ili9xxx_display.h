@@ -107,6 +107,8 @@ class ILI9XXXDisplay : public display::DisplayBuffer,
   }
     // Declare the static global reset flag
   static bool global_shared_reset_has_been_performed;
+  static bool global_dc_pin_has_been_setup;
+
 
   // Add the member variable for shared reset pin usage
   bool uses_shared_reset_pin_{false};

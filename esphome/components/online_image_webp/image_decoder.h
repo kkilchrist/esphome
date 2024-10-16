@@ -1,6 +1,7 @@
 #pragma once
 #include "esphome/core/defines.h"
 #include "esphome/core/color.h"
+#include "online_image.h"  // Include the full definition of OnlineImage
 
 namespace esphome {
 namespace online_image {

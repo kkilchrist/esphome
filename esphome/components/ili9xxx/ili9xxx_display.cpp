@@ -17,10 +17,12 @@ static inline void put16_be(uint8_t *buf, uint16_t value) {
 }
 // Initialize the static global reset flag
 bool ILI9XXXDisplay::global_shared_reset_has_been_performed = false;
+bool ILI9XXXDisplay::global_dc_pin_has_been_setup = false;
 // In ili9xxx_display.cpp
 void ILI9XXXDisplay::set_uses_shared_reset_pin(bool uses_shared_reset_pin) {
   this->uses_shared_reset_pin_ = uses_shared_reset_pin;
 }
+
 
 void ILI9XXXDisplay::set_madctl() {
   // custom x/y transform and color order
@@ -83,25 +85,32 @@ void ILI9XXXDisplay::alloc_buffer_() {
   }
 }
 void ILI9XXXDisplay::setup_pins_() {
-  this->dc_pin_->setup();  // OUTPUT
-  this->dc_pin_->digital_write(false);
-  
-  if (this->reset_pin_ != nullptr) {
-    this->reset_pin_->setup();  // OUTPUT
-    this->reset_pin_->digital_write(true);
+  // Setup DC pin if it hasn't been set up yet
+  if (!global_dc_pin_has_been_setup) {
+    this->dc_pin_->setup();  // OUTPUT
+    this->dc_pin_->digital_write(false);
+    global_dc_pin_has_been_setup = true;
   }
-
-  this->spi_setup();
 
   // Perform reset based on shared reset pin configuration
   if (!this->uses_shared_reset_pin_ || !global_shared_reset_has_been_performed) {
+    // Set up the reset pin only if a reset is needed
+    if (this->reset_pin_ != nullptr) {
+      this->reset_pin_->setup();  // OUTPUT
+      this->reset_pin_->digital_write(true);
+    }
+
     this->reset_();
+
     // If using a shared reset pin, mark the global reset as performed
     if (this->uses_shared_reset_pin_) {
       global_shared_reset_has_been_performed = true;
     }
   }
+
+  this->spi_setup();
 }
+
 
 void ILI9XXXDisplay::dump_config() {
   LOG_DISPLAY("", "ili9xxx", this);

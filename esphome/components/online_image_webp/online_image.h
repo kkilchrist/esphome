@@ -5,7 +5,6 @@
 #include "esphome/core/helpers.h"
 #include "esphome/components/http_request/http_request.h"
 #include "esphome/components/image/image.h"
-
 #include "image_decoder.h"
 
 namespace esphome {

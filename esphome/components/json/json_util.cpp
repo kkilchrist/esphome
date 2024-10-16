@@ -31,6 +31,10 @@ std::string build_json(const json_build_t &f) {
   const size_t free_heap = rp2040.getFreeHeap();
 #elif defined(USE_LIBRETINY)
   const size_t free_heap = lt_heap_get_free();
+#elif defined(USE_HOST)
+  const size_t free_heap = 1024*1024;  // Set to 1 MB for host
+#else
+  const size_t free_heap = 5 * 1024;  // Set to 5 KB as a backup
 #endif
 
   size_t request_size = std::min(free_heap, (size_t) 512);
@@ -75,6 +79,10 @@ bool parse_json(const std::string &data, const json_parse_t &f) {
   const size_t free_heap = rp2040.getFreeHeap();
 #elif defined(USE_LIBRETINY)
   const size_t free_heap = lt_heap_get_free();
+#elif defined(USE_HOST)
+  const size_t free_heap = 1024*1024;  // Set to 1 MB for host
+#else
+  const size_t free_heap = 5 * 1024;  // Set to 5 KB as a backup
 #endif
   size_t request_size = std::min(free_heap, (size_t) (data.size() * 1.5));
   while (true) {
