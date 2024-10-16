@@ -21,7 +21,7 @@ http_request_ns = cg.esphome_ns.namespace("http_request")
 HttpRequestComponent = http_request_ns.class_("HttpRequestComponent", cg.Component)
 HttpRequestArduino = http_request_ns.class_("HttpRequestArduino", HttpRequestComponent)
 HttpRequestIDF = http_request_ns.class_("HttpRequestIDF", HttpRequestComponent)
-HttpRequestHost = http_request_ns.class_("HttpRequestHost", HttpRequestComponent)
+HttpRequestCurl = http_request_ns.class_("HttpRequestCurl", HttpRequestComponent)
 
 HttpContainer = http_request_ns.class_("HttpContainer")
 
@@ -91,7 +91,7 @@ def _declare_request_class(value):
     if CORE.is_esp8266 or CORE.is_esp32 or CORE.is_rp2040:
         return cv.declare_id(HttpRequestArduino)(value)
     if CORE.is_host:
-        return cv.declare_id(HttpRequestHost)(value)  # Correct usage
+        return cv.declare_id(HttpRequestCurl)(value)  # Correct usage
     return NotImplementedError
 
 
