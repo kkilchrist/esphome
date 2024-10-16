@@ -24,6 +24,7 @@ struct Header {
 
 class HttpRequestComponent;
 
+// Abstract class representing an HTTP response container
 class HttpContainer : public Parented<HttpRequestComponent> {
  public:
   virtual ~HttpContainer() = default;
@@ -33,6 +34,9 @@ class HttpContainer : public Parented<HttpRequestComponent> {
 
   virtual int read(uint8_t *buf, size_t max_len) = 0;
   virtual void end() = 0;
+  
+  // Add a virtual method to set the response
+  virtual void set_response(const std::string &response) = 0;
 
   void set_secure(bool secure) { this->secure_ = secure; }
 
@@ -43,6 +47,7 @@ class HttpContainer : public Parented<HttpRequestComponent> {
   bool secure_{false};
 };
 
+// Trigger class for HTTP responses
 class HttpRequestResponseTrigger : public Trigger<std::shared_ptr<HttpContainer>, std::string &> {
  public:
   void process(std::shared_ptr<HttpContainer> container, std::string &response_body) {
@@ -50,6 +55,7 @@ class HttpRequestResponseTrigger : public Trigger<std::shared_ptr<HttpContainer>
   }
 };
 
+// Component class for initiating HTTP requests
 class HttpRequestComponent : public Component {
  public:
   void dump_config() override;
@@ -73,6 +79,7 @@ class HttpRequestComponent : public Component {
     return this->start(std::move(url), "POST", std::move(body), std::move(headers));
   }
 
+  // Pure virtual method to start an HTTP request
   virtual std::shared_ptr<HttpContainer> start(std::string url, std::string method, std::string body,
                                                std::list<Header> headers) = 0;
 
@@ -84,6 +91,7 @@ class HttpRequestComponent : public Component {
   uint32_t watchdog_timeout_{0};
 };
 
+// Action class for sending HTTP requests
 template<typename... Ts> class HttpRequestSendAction : public Action<Ts...> {
  public:
   HttpRequestSendAction(HttpRequestComponent *parent) : parent_(parent) {}

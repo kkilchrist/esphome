@@ -9,6 +9,7 @@ from esphome.const import (
     CONF_TIMEOUT,
     CONF_TRIGGER_ID,
     CONF_URL,
+    PLATFORM_HOST,
     __version__,
 )
 from esphome.core import CORE, Lambda
@@ -20,6 +21,7 @@ http_request_ns = cg.esphome_ns.namespace("http_request")
 HttpRequestComponent = http_request_ns.class_("HttpRequestComponent", cg.Component)
 HttpRequestArduino = http_request_ns.class_("HttpRequestArduino", HttpRequestComponent)
 HttpRequestIDF = http_request_ns.class_("HttpRequestIDF", HttpRequestComponent)
+HttpRequestHost = http_request_ns.class_("HttpRequestHost", HttpRequestComponent)
 
 HttpContainer = http_request_ns.class_("HttpContainer")
 
@@ -88,13 +90,16 @@ def _declare_request_class(value):
         return cv.declare_id(HttpRequestIDF)(value)
     if CORE.is_esp8266 or CORE.is_esp32 or CORE.is_rp2040:
         return cv.declare_id(HttpRequestArduino)(value)
+    if CORE.is_host:
+        return cv.declare_id(HttpRequestHost)(value)  # Correct usage
     return NotImplementedError
+
 
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
-            cv.GenerateID(): _declare_request_class,
+            cv.GenerateID(): _declare_request_class,  # Ensure the host platform class is declared properly
             cv.Optional(
                 CONF_USERAGENT, f"ESPHome/{__version__} (https://esphome.io)"
             ): cv.string,
@@ -108,7 +113,8 @@ CONFIG_SCHEMA = cv.All(
             ),
             cv.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
             cv.Optional(CONF_WATCHDOG_TIMEOUT): cv.All(
-                cv.Any(cv.only_on_esp32, cv.only_on_rp2040),
+                cv.Any(cv.only_on_esp32, cv.only_on_rp2040, cv.only_on(PLATFORM_HOST),
+),
                 cv.positive_not_null_time_period,
                 cv.positive_time_period_milliseconds,
             ),
@@ -125,6 +131,7 @@ CONFIG_SCHEMA = cv.All(
         esp32_arduino=cv.Version(0, 0, 0),
         esp_idf=cv.Version(0, 0, 0),
         rp2040_arduino=cv.Version(0, 0, 0),
+        host=cv.Version(0, 0, 0),
     ),
     validate_ssl_verification,
 )
@@ -167,7 +174,11 @@ async def to_code(config):
         cg.add_library("ESP8266HTTPClient", None)
     if CORE.is_rp2040 and CORE.using_arduino:
         cg.add_library("HTTPClient", None)
-
+    # Set up networking and HTTP support for host platform
+    if CORE.is_host:
+        # Ensure libcurl is included for HTTP requests
+        cg.add_library("libcurl-esp32", None) # Is libcurl sufficient to replace HTTPClient?
+    
     await cg.register_component(var, config)
 
 
